@@ -46,12 +46,12 @@ int trans_file(int new_fd, char *parameters) {
 	int fd = open(parameters, O_RDONLY);
 
 	while(bzero(&t, sizeof(t)), (t.len = read(fd, t.buf, sizeof(t.buf))) > 0){
-		int ret = sendn(new_fd, (char*)&t, 8+t.len);
-		if(ret == -1){
-		goto end;
+		int ret = sendn(new_fd, (char*)&t, 8 + t.len);
+		if (ret == -1) {
+			goto end;
 		}	
 	}
-	t.len=0;				//可以不加这句话，因为最后一次read返回0
+	t.len = 0;				//可以不加这句话，因为最后一次read返回0
 	sendn(new_fd, (char*)&t, sizeof(t.len));//高危处
 end:
 	close(fd);
