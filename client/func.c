@@ -43,7 +43,7 @@ int trans_file(int new_fd, char *parameters) {
 	strcpy(t.buf, parameters);
 		t.len = strlen(t.buf);
 		sendn(new_fd, (char*)&t, 8 + t.len);
-	int fd=open(parameters,O_RDONLY);
+	int fd = open(parameters, O_RDONLY);
 
 	while(bzero(&t, sizeof(t)), (t.len = read(fd, t.buf, sizeof(t.buf))) > 0){
 		int ret = sendn(new_fd, (char*)&t, 8+t.len);
