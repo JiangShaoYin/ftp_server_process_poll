@@ -7,8 +7,8 @@ void sig_exit(int signum){
 
 int main() {
 	int pro_num = 10;
-	pdata children_process = (pdata)calloc(pro_num, sizeof(data)); // 进程
-	make_child(children_process, pro_num); // 创建子进程
+	pdata subProcess = (pdata)calloc(pro_num, sizeof(data)); // 进程
+	make_child(subProcess, pro_num); // 创建子进程
 	
 	int socket_fd = socket(AF_INET, SOCK_STREAM, 0); // 生成套接口描述符
 	int reuse = 1; // 设置socket_fd属性为reuse，这样当客户端断开后，端口不必等待（否则要等待tcp4次挥手完成后，这个socket描述符才可以重新使用）
@@ -27,10 +27,10 @@ int main() {
 	event.events = EPOLLIN;
 	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event);// 向内核，注册要监控的socket_fd, 监视是否有client的connect请求。
 	
-	for(int i=0; i < pro_num; i++) { 
-		event.data.fd = children_process[i].pipe_fd; // 将子进程与父进程通信的pipe_fd, 添加进epoll
+	for(int i = 0; i < pro_num; i++) { 
+		event.data.fd = subProcess[i].pipe_fd; // 将子进程与父进程通信的pipe_fd, 添加进epoll
 		event.events = EPOLLIN;
-			epoll_ctl(epoll_fd, EPOLL_CTL_ADD, children_process[i].pipe_fd, &event);
+			epoll_ctl(epoll_fd, EPOLL_CTL_ADD, subProcess[i].pipe_fd, &event);
 		}
 
 	int fds[2];
@@ -52,7 +52,7 @@ int main() {
 						event.data.fd = socket_fd;
 						epoll_ctl(epoll_fd, EPOLL_CTL_DEL, socket_fd, &event);
 					for (available_process_idx = 0; available_process_idx < pro_num; available_process_idx++) {
-						send_socketFd_to_pipe(children_process[available_process_idx].pipe_fd, 0, 1);//buffer=1表示，父进程告诉子进程自己要退出，随便发个文件
+						send_socketFd_to_pipe(subProcess[available_process_idx].pipe_fd, 0, 1); // buffer=1表示，父进程告诉子进程自己要退出，随便发个文件
 						}					//描述符过去（本例是0），主要是利用sendmsg发送结束标识buffer
 					for (available_process_idx = 0; available_process_idx < pro_num; available_process_idx++) {
 						wait(NULL);		//回收子进程资源			
@@ -60,23 +60,23 @@ int main() {
 					exit(0);
 				}
 			int available_process_idx;
-			if (epoll_monitor_events[i].data.fd == socket_fd) { // 父进程socket_fd上来消息了。启用子进程建立连接。
+			if (epoll_monitor_events[i].data.fd == socket_fd) { // 父进程socket_fd上, 来消息了。启用子进程建立连接。
 				int new_socket_fd = accept(socket_fd, NULL, NULL);
 					for (available_process_idx = 0; available_process_idx < pro_num; j++) { // 找一个不忙的进程出来干活。
-						if (false == children_process[available_process_idx].busy) {
+						if (false == subProcess[available_process_idx].busy) {
 							break;
 						}
 					}
-				send_socketFd_to_pipe(children_process[available_process_idx].pipe_fd, new_socket_fd, 0);
-				children_process[available_process_idx].busy = true;
-				printf("%d child is busy\n", children_process[available_process_idx].pid);
+				send_socketFd_to_pipe(subProcess[available_process_idx].pipe_fd, new_socket_fd, 0);
+				subProcess[available_process_idx].busy = true;
+				printf("%d child is busy\n", subProcess[available_process_idx].pid);
 				close(new_socket_fd);
 			}
 			for (available_process_idx = 0; available_process_idx < pro_num; available_process_idx++) {   //判断与父进程相连的哪一个管道里面有消息（子进程通知父进程，我闲了）
-				if (epoll_monitor_events[i].data.fd == children_process[available_process_idx].pipe_fd) {
-					read(children_process[available_process_idx].pipe_fd, &buffer, sizeof(buffer));
-					children_process[available_process_idx].busy = false;
-					printf("%d child is not busy\n", children_process[available_process_idx].pid);
+				if (epoll_monitor_events[i].data.fd == subProcess[available_process_idx].pipe_fd) {
+					read(subProcess[available_process_idx].pipe_fd, &buffer, sizeof(buffer));
+					subProcess[available_process_idx].busy = false;
+					printf("%d child is not busy\n", subProcess[available_process_idx].pid);
 				}
 			}
 		}

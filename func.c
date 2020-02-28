@@ -1,19 +1,21 @@
 #include"func.h"
 
-void make_child(pdata children_process, int pro_num){
+void make_child(pdata subProcess, int pro_num){
 	int fds[2];
 	pid_t pid;
-	for(int i=0; i < pro_num; i++){
+	for(int i = 0; i < pro_num; i++){
 		socketpair(AF_LOCAL, SOCK_STREAM, 0, fds);
 		pid = fork();
-		if(0 == pid) { // 在子进程中，fork()返回0
+		if (pid) {
+			close(fds[0]);  // 父进程
+			subProcess[i].pid = pid;
+			subProcess[i].pipe_fd = fds[1]; // 父进程用fd[1]
+			subProcess[i].busy = 0;
+		} else if (0 == pid) { // 在子进程中，fork()返回0
 			close(fds[1]); // 子进程用fd[0]
 			child_handle(fds[0]); // 处理读端
 		}
-			close(fds[0]);  // 父进程
-			children_process[i].pid = pid;
-			children_process[i].pipe_fd = fds[1]; // 父进程用fd[1]
-			children_process[i].busy = 0;
+
 	}
 }
 
@@ -46,27 +48,25 @@ void child_handle(int pipe_fd) {
 int sendn(int new_fd,char*buf,int len){
 	int total=0;
 	int ret;
-	while(total<len){
-		ret=send(new_fd,buf+total,len-total,0);
-		if(ret==-1){
+	while(total < len){
+		ret = send(new_fd, buf + total, len - total, 0);
+		if(ret == -1){
 			printf("客户端下线\n");
 			return -1;
 		}
-			total=total+ret;
+			total = total + ret;
 	}
 	return 0;
 }
 
-int recvn(int sfd,char* buf,int len)
-{
-	int total=0;
+int recvn(int sfd, char* buf, int len) {
+	int total = 0;
 	int ret;
-	while(total<len)
-	{
-		ret=recv(sfd,buf+total,len-total,0);
-		printf("\nret=%d\n",ret);
-		total=total+ret;
-		printf("total=%d,len=%d\n",total,len);
+	while (total < len) {
+		ret = recv(sfd, buf + total, len - total, 0);
+		printf("\nret = %d\n", ret);
+		total = total + ret;
+		printf("total = %d, len = %d\n", total, len);
 	}
 	return ret;
 }

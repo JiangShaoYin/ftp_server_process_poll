@@ -26,7 +26,7 @@ int cmd(int new_fd) {
 		int cmd_idx = -1;
 		for(int i = 0; mycmd[i] != NULL; i++){
 			if(strcmp(command, mycmd[i]) == 0){
-				cmd_idx=i;
+				cmd_idx = i;
 				break;
 			}
 		}
@@ -47,15 +47,15 @@ int CD(int new_fd, char *parameters) {
 	char *path = NULL;
 		chdir(parameters);//危险操作，非法访问
 		path=getcwd(NULL, 0);
-	if(strcmp(path, ROOTDIR) < 0 || strcmp(path, ROOTDIR)==0)//path小于等于rootdir，说明越界了， #define ROOTDIR "/home/jiang/ftp"
+	if (strcmp(path, ROOTDIR) < 0 || strcmp(path, ROOTDIR) == 0)//path小于等于rootdir，说明越界了， #define ROOTDIR "/home/jiang/ftp"
 		parameters = ROOTDIR;	
 	chdir(parameters);
 	LS(new_fd);
 	return 0;
 }
 
-int LS(int new_fd){
-	char *path=NULL;
+int LS(int new_fd) {
+	char *path = NULL;
 	train t = {0};
 	path = getcwd(NULL, 0);
 	DIR* dir = opendir(path); // open返回指向DIR结构体的指针，该指针可被几个与目录有关的函数（readdir，）使用，返回目录的相关信息
@@ -119,7 +119,7 @@ int receive_from_server(int socket_fd) {
 	printf("t.len = %d\n", t.len);
 	printf("t.flag = %d\n", t.flag);
 	printf("t.buf = %s\n", t.buf);
-	fd=open(t.buf, O_RDWR|O_CREAT, 0666);
+	fd = open(t.buf, O_RDWR|O_CREAT, 0666);
 	if(-1 == fd) {
 		perror("open");
 		return -1;
