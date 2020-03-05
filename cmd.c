@@ -8,18 +8,18 @@ int cmd(int new_fd) {
 		char parameters[100] = {0};
 		char *mycmd[] = {"cd","ls","put","get","del","pwd","exit",NULL};
 
-		int ret = recv(new_fd, (char*)&t.len, sizeof(t.len), 0);//接收长度
+		int ret = recv(new_fd, (char*)&t.len, sizeof(t.len), 0); // 接收长度
 		recv(new_fd,(char*)&t.flag, sizeof(t.flag), 0);
 		recv(new_fd, t.buf, t.len - 1, 0); 
-		if (0 == ret || ret < 0 ) { //send端掉线，rec返回0；
+		if (0 == ret || ret < 0 ) { // send端掉线，rec返回0；
 			perror("recv");
 			return -1;		
 		}
 
 		printf("cmd received\n");
 		printf("%s\n", t.buf);
-		for(i=0; t.buf[i] != ' ' && t.buf[i] != 0; i++)
-			command[i]=t.buf[i];
+		for(i = 0; t.buf[i] != ' ' && t.buf[i] != 0; i++)
+			command[i] = t.buf[i];
 		int pos = i + 1;
 		for(j = 0; t.buf[pos + j] != 0; j++)
 			parameters[j]=t.buf[pos+j];

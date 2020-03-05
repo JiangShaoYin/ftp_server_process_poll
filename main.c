@@ -49,11 +49,11 @@ int main() {
 				printf("father want exit\n");
 					read(fds[0], &buffer, sizeof(buffer));
 						event.events = EPOLLIN;
-						event.data.fd = socket_fd;
+						event.data.fd = socket_fd; // 删除socket，不再接受新的client连接
 						epoll_ctl(epoll_fd, EPOLL_CTL_DEL, socket_fd, &event);
 					for (available_process_idx = 0; available_process_idx < pro_num; available_process_idx++) {
 						send_socketFd_to_pipe(subProcess[available_process_idx].pipe_fd, 0, 1); // buffer=1表示，父进程告诉子进程自己要退出，随便发个文件
-						}					//描述符过去（本例是0），主要是利用sendmsg发送结束标识buffer
+					}					//描述符过去（本例是0），主要是利用sendmsg发送结束标识buffer
 					for (available_process_idx = 0; available_process_idx < pro_num; available_process_idx++) {
 						wait(NULL);		//回收子进程资源			
 					}

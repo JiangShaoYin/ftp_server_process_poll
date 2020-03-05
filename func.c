@@ -9,7 +9,7 @@ void make_child(pdata subProcess, int pro_num){
 		if (pid) {
 			close(fds[0]);  // 父进程
 			subProcess[i].pid = pid;
-			subProcess[i].pipe_fd = fds[1]; // 父进程用fd[1]
+			subProcess[i].pipe_fd = fds[1]; // 父进程用fd[1]，用来接收子进程 处理完任务后，告诉自己不忙，可以接受新任务的状态
 			subProcess[i].busy = 0;
 		} else if (0 == pid) { // 在子进程中，fork()返回0
 			close(fds[1]); // 子进程用fd[0]
@@ -31,7 +31,7 @@ void child_handle(int pipe_fd) {
 			if(cmd_exit == 0){                // 父进程退出，子进程传输完成后回到while接收命令循环里，读到cmd_exit标志，结束子进程
 				while (1) {		
 					ret = cmd(new_fd);		// cmd函数是子进程与client之间交互的函数
-					if(ret==-1){          // 客户端断，子进程睡
+					if (ret == -1) {          // 客户端断，子进程睡
 						printf("客户端掉线\n");
 						write(pipe_fd, &c, sizeof(c));	
 						break;
@@ -98,23 +98,23 @@ void send_socketFd_to_pipe(int pipe_fd, int socket_fd, short flag) { // 将socke
 void recv_fd(int pipe_fd, int *fd, short *flag) {
 	struct msghdr msg = {0};
 	struct iovec iov[2];
-	char buf2[10]="world";
-		iov[0].iov_base=flag;
-		iov[1].iov_base=buf2;
-		iov[0].iov_len=2;
-		iov[1].iov_len=5;
-	msg.msg_iov=iov;
-	msg.msg_iovlen=2;
+	char buf2[10] = "world";
+		iov[0].iov_base = flag;
+		iov[1].iov_base = buf2;
+		iov[0].iov_len = 2;
+		iov[1].iov_len = 5;
+	msg.msg_iov = iov;
+	msg.msg_iovlen = 2;
 
-	struct cmsghdr*cmsg=NULL;
-		int len=CMSG_LEN(sizeof(int));
-		cmsg=(struct cmsghdr*)calloc(1,len);
-			cmsg->cmsg_len=len;	
-			cmsg->cmsg_level=SOL_SOCKET;	
-			cmsg->cmsg_type=SCM_RIGHTS;
+	struct cmsghdr*cmsg = NULL;
+		int len = CMSG_LEN(sizeof(int));
+		cmsg = (struct cmsghdr*)calloc(1, len);
+			cmsg->cmsg_len = len;	
+			cmsg->cmsg_level = SOL_SOCKET;	
+			cmsg->cmsg_type = SCM_RIGHTS;
 		
-	msg.msg_control=cmsg;
-	msg.msg_controllen=len;
+	msg.msg_control = cmsg;
+	msg.msg_controllen = len;
 
 	recvmsg(pipe_fd, &msg, 0);
 	*fd = *(int *)CMSG_DATA(cmsg);
