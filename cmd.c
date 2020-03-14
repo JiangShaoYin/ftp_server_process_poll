@@ -1,47 +1,47 @@
 #include"func.h"
 
 int cmd(int new_fd) {
-		printf("服务器子进程准备接收命令：\n");
-		train t = {0};
-		int i,j; // for循环里面用的变量
-		char command[3] = {0};
-		char parameters[100] = {0};
-		char *mycmd[] = {"cd","ls","put","get","del","pwd","exit",NULL};
+	printf("服务器子进程准备接收命令：\n");
+	train t = {0};
+	int i,j; // for循环里面用的变量
+	char command[3] = {0};
+	char parameters[100] = {0};
+	char *mycmd[] = {"cd","ls","put","get","del","pwd","exit",NULL};
 
-		int ret = recv(new_fd, (char*)&t.len, sizeof(t.len), 0); // 接收长度
-		recv(new_fd,(char*)&t.flag, sizeof(t.flag), 0);
-		recv(new_fd, t.buf, t.len - 1, 0); 
-		if (0 == ret || ret < 0 ) { // send端掉线，rec返回0；
-			perror("recv");
-			return -1;		
-		}
-
-		printf("cmd received\n");
-		printf("%s\n", t.buf);
-		for(i = 0; t.buf[i] != ' ' && t.buf[i] != 0; i++)
-			command[i] = t.buf[i];
-		int pos = i + 1;
-		for(j = 0; t.buf[pos + j] != 0; j++)
-			parameters[j]=t.buf[pos+j];
-		int cmd_idx = -1;
-		for(int i = 0; mycmd[i] != NULL; i++){
-			if(strcmp(command, mycmd[i]) == 0){
-				cmd_idx = i;
-				break;
-			}
-		}
-		switch(cmd_idx) {
-			case 0 : CD(new_fd,parameters); break;
-			case 1 : LS(new_fd); break;
-			case 2 : receive_from_server(new_fd); break;
-			case 3 : trans_file(new_fd,parameters); break;
-			case 4 : DEL(new_fd,parameters); break;
-			case 5 : PWD(new_fd); break;
-			case 6 : break;
-			case 7 : break;
-		}
-		return 0;
+	int ret = recv(new_fd, (char*)&t.len, sizeof(t.len), 0); // 接收长度
+	recv(new_fd,(char*)&t.flag, sizeof(t.flag), 0);
+	recv(new_fd, t.buf, t.len - 1, 0); 
+	if (0 == ret || ret < 0 ) { // send端掉线，rec返回0；
+		perror("recv");
+		return -1;		
 	}
+
+	printf("cmd received\n");
+	printf("%s\n", t.buf);
+	for(i = 0; t.buf[i] != ' ' && t.buf[i] != 0; i++)
+		command[i] = t.buf[i];
+	int pos = i + 1;
+	for(j = 0; t.buf[pos + j] != 0; j++)
+		parameters[j]=t.buf[pos+j];
+	int cmd_idx = -1;
+	for(int i = 0; mycmd[i] != NULL; i++){
+		if(strcmp(command, mycmd[i]) == 0){
+			cmd_idx = i;
+			break;
+		}
+	}
+	switch(cmd_idx) {
+		case 0 : CD(new_fd,parameters); break;
+		case 1 : LS(new_fd); break;
+		case 2 : receive_from_server(new_fd); break;
+		case 3 : trans_file(new_fd,parameters); break;
+		case 4 : DEL(new_fd,parameters); break;
+		case 5 : PWD(new_fd); break;
+		case 6 : break;
+		case 7 : break;
+	}
+	return 0;
+}
 
 int CD(int new_fd, char *parameters) {
 	char *path = NULL;

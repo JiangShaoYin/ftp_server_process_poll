@@ -36,9 +36,9 @@ void child_handle(int pipe_fd) {
 						write(pipe_fd, &c, sizeof(c));	
 						break;
 					}
-					}
 				}
-			else{puts("父进程退出");
+			} else { 
+				puts("父进程退出");
 				exit(0);
 			}
 		}
@@ -72,11 +72,11 @@ int recvn(int sfd, char* buf, int len) {
 }
 
 
-void send_socketFd_to_pipe(int pipe_fd, int socket_fd, short flag) { // 将socket_fd send to pipe
+void send_socketFd_to_pipe(int pipe_fd, int socket_fd, short cmd_flag) { // 将socket_fd send to pipe
 	struct msghdr msg = {0};
 	struct iovec iov[2];
 	char buf2[10] = "world";
-		iov[0].iov_base = &flag;
+		iov[0].iov_base = &cmd_flag;
 		iov[1].iov_base = buf2;
 		iov[0].iov_len = 2;
 		iov[1].iov_len = 5;
@@ -95,11 +95,11 @@ void send_socketFd_to_pipe(int pipe_fd, int socket_fd, short flag) { // 将socke
 	sendmsg(pipe_fd, &msg, 0);
 }
 
-void recv_fd(int pipe_fd, int *fd, short *flag) {
+void recv_fd(int pipe_fd, int *fd, short *cmd_flag) {
 	struct msghdr msg = {0};
 	struct iovec iov[2];
 	char buf2[10] = "world";
-		iov[0].iov_base = flag;
+		iov[0].iov_base = cmd_flag;
 		iov[1].iov_base = buf2;
 		iov[0].iov_len = 2;
 		iov[1].iov_len = 5;
