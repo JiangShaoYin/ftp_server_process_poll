@@ -27,21 +27,22 @@ void child_handle(int pipe_fd) {
 	char buf[100];
 	signal(SIGPIPE, sig);                  //接收一个msghdr消息头的结构体，将退出的标志写在这个结构体里,用高级套接口sendmsg/recvmsg来发送接收。
 	while (1) {                             //(在这个结构体中有一个变长的结构体cmsghdr，用来发文件描述符)
-			recv_fd(pipe_fd, &new_fd, &cmd_exit); // 通过接收到的cmd_exit判断父进程的指令，cmd_exit=0是工作，cmd_exit=1是退出
-			if(cmd_exit == 0){                // 父进程退出，子进程传输完成后回到while接收命令循环里，读到cmd_exit标志，结束子进程
-				while (1) {		
-					ret = cmd(new_fd);		// cmd函数是子进程与client之间交互的函数
-					if (ret == -1) {          // 客户端断，子进程睡
-						printf("客户端掉线\n");
-						write(pipe_fd, &c, sizeof(c));	
-						break;
-					}
+		recv_fd(pipe_fd, &new_fd, &cmd_exit); // 通过接收到的cmd_exit判断父进程的指令，cmd_exit=0是工作，cmd_exit=1是退出
+		if(cmd_exit == 0){                // 父进程退出，子进程传输完成后回到while接收命令循环里，读到cmd_exit标志，结束子进程
+			while (1) {		
+				ret = cmd(new_fd);		// cmd函数是子进程与client之间交互的函数
+				if (ret == -1) {          // 客户端断，子进程睡
+					printf("客户端掉线\n");
+					write(pipe_fd, &c, sizeof(c));	
+					break;
 				}
-			} else { 
-				puts("父进程退出");
-				exit(0);
 			}
+		} else { 
+			puts("父进程退出");
+			exit(0);
 		}
+	}
+}
 
 
 
@@ -54,7 +55,7 @@ int sendn(int new_fd,char*buf,int len){
 			printf("客户端下线\n");
 			return -1;
 		}
-			total = total + ret;
+		total = total + ret;
 	}
 	return 0;
 }

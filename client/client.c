@@ -38,8 +38,8 @@ int main(){
 				memcpy(buf, t. buf,3); // 把命令字符串，的前3个字节拷贝下来
 					if (strcmp(buf, "put") == 0) { // 如果是上传命令，则把字符串后面的要上传的文件名取下来
 						char filename[100] = {0};
-						memcpy(filename, t.buf + 4, strlen(t.buf) - 5); // t.buf的前4个字符为put+空格 
-						trans_file(socket_fd, filename);
+						memcpy(filename, t.buf + 4, strlen(t.buf) - 5); // t.buf的前4个字符为 put + 空格 
+						transferFile2Client(socket_fd, filename);
 					}
 				}
 			if (socket_fd == epoll_monitor_events[i].data.fd) { // 

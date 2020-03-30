@@ -25,7 +25,7 @@ int main() {
 	
 	event.data.fd = socket_fd; // server监听的fd
 	event.events = EPOLLIN;
-	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event);// 向内核，注册要监控的socket_fd, 监视是否有client的connect请求。
+	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event); // 向内核，注册要监控的socket_fd, 监视是否有client的connect请求。
 	
 	for(int i = 0; i < pro_num; i++) { 
 		event.data.fd = subProcess[i].pipe_fd; // 将子进程与父进程通信的pipe_fd, 添加进epoll
@@ -35,14 +35,14 @@ int main() {
 
 	int fds[2];
 	pipe(fds); // 建立匿名管道， 将读端注册进epoll， 监控父进程是否异常退出
-		event.events = EPOLLIN;
+		event.events = EPOLLIN; // 默认是LT边缘触发
 		event.data.fd = fds[0]; 
 		epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fds[0], &event);
 	signal(SIGUSR1, sig_exit); // 主进程退出， 由sig_exit函数向管道写1个char， epoll发现后就知道父进程退出了
 
 	listen(socket_fd, pro_num); //
-	char buffer; //把fds[0]字符读掉
-	while(1){
+	char buffer; // 把fds[0]字符读掉
+	while (1) {
 		int to_be_processed_nums = epoll_wait(epoll_fd, epoll_monitor_events, pro_num + 2, -1); // 2 * pro_num个管道描述符，监控父进程中的pro_num个 + socket_fd + 描绘父进程是否异常退出的fd
 		for (int i = 0; i < to_be_processed_nums; i++) {
 			if (epoll_monitor_events[i].data.fd == fds[0]) { // 父进程管道被触发
@@ -72,9 +72,9 @@ int main() {
 				printf("%d child is busy\n", subProcess[available_process_idx].pid);
 				close(new_socket_fd);
 			}
-			for (available_process_idx = 0; available_process_idx < pro_num; available_process_idx++) {   //判断与父进程相连的哪一个管道里面有消息（子进程通知父进程，我闲了）
+			for (available_process_idx = 0; available_process_idx < pro_num; available_process_idx++) {   //监控父进程的读端，判断与父进程相连的哪一个管道里面有消息（子进程通知父进程，我闲了）
 				if (epoll_monitor_events[i].data.fd == subProcess[available_process_idx].pipe_fd) {
-					read(subProcess[available_process_idx].pipe_fd, &buffer, sizeof(buffer));
+					read(subProcess[available_process_idx].pipe_fd, &buffer, sizeof(buffer)); // 如果是ET模式，在这里循环读，read设置为非阻塞，当读空的时候，返回0
 					subProcess[available_process_idx].busy = false;
 					printf("%d child is not busy\n", subProcess[available_process_idx].pid);
 				}

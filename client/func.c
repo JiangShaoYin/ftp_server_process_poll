@@ -23,7 +23,7 @@ int receive_from_server(int socket_fd){
 			recvn(socket_fd, (char*)&t.flag, sizeof(t.flag));
 			recvn(socket_fd, t.buf, t.len);
 			write(fd,t.buf,t.len);
-		}else{
+		} else {
 			break;
 		}
 	}
@@ -54,7 +54,7 @@ int trans_file(int new_fd, char *parameters) {
 	t.len = 0;				//可以不加这句话，因为最后一次read返回0
 	sendn(new_fd, (char*)&t, sizeof(t.len));//高危处
 end:
-	close(fd);
+	close(fd); // 关闭连接，通知父进程我闲了
 		char c = 'c';
 	return 0;
 }
@@ -63,13 +63,9 @@ int sendn(int socket_fd, char* buf, int len) {
 	int total = 0;
 	int ret;
 	while(total < len) {
-		ret=send(socket_fd, buf + total, len - total, 0);
-			if (ret == -1) {
-				printf("客户端掉线\n");
-			}
-			if (ret == 0) {
-				printf("发送0字节\n");
-			}
+		ret = send(socket_fd, buf + total, len - total, 0); // 发送缓冲区不一定有足够的空间，所以1024个字节可能一次发不完
+		if (ret == -1) printf("客户端掉线\n"); // socket send失败, 返回-1
+		if (ret == 0) printf("发送0字节\n");
 		total = total + ret;
 	}
 	return ret;

@@ -33,8 +33,8 @@ typedef struct{
 
 typedef struct{
 	int len;
-	int flag;//flag=1表示传递的是显示信息，flag=2表示传递文件
-	char buf[1000];
+	int flag;//flag = 1表示传递的是显示信息，flag = 2表示传递文件
+	char buf[1024];
 }train;
 
 //#define FILENAME "file"
